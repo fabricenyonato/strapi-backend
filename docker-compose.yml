@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:14-bullseye
+    container_name: strapi-backend-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+      # - ./docker-entrypoint-initdb.d:/var/lib/postgresql/backup
+    environment:
+      POSTGRES_PASSWORD: root
+    networks:
+      - strapi-backend-network
+
+  backend:
+    image: node:16-bullseye
+    container_name: strapi-backend
+    ports:
+      - "1337:1337"
+    volumes:
+      - ./backend/:/root/app
+    networks:
+      - strapi-backend-network
+    depends_on:
+      - db
+    environment:
+      DATABASE_HOST: db
+      DATABASE_NAME: postgres
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: root
+    working_dir: /root/app
+    command: bash -c "yarn && yarn develop"
+
+networks:
+  strapi-backend-network:
+    driver: bridge
